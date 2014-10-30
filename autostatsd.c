@@ -35,25 +35,47 @@ PHP_RINIT_FUNCTION(autostatsd)
 	return SUCCESS;
 }
 
-static php_stream *g_stream = NULL;
-static char g_persistent_id[64] = {0};
+static php_stream *stream = NULL;
+static char persistent_id[64] = {0};
+
+static char *host = "127.0.0.1";
+static int port = 8125;
+static int options = ENFORCE_SAFE_MODE;
+static int flags = STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT;
+
+void open_statsd_stream()
+{
+	char *url = NULL;
+	int url_len = spprintf(&url, 0, "%s%s:%d", "udp://", host, port);
+
+	char *errstr;
+	int errcode;
+
+	stream = php_stream_xport_create(url, url_len, options, flags, persistent_id, NULL, NULL, &errstr, &errcode);
+}
+
+void send_statsd_datagram(char *metric, int value, char *type)
+{
+	char *data = NULL;
+	int data_len = spprintf(&data, 0, "%s:%d|%s", metric, value, type);
+
+    php_stream_write(stream, data, data_len);
+}
+
+float get_request_time()
+{
+
+}
 
 PHP_RSHUTDOWN_FUNCTION(autostatsd)
 {
-	char *pData = "test.value.counter:1|c";
+	open_statsd_stream();
+	send_statsd_datagram("php.request.count", 1, "c");
+	send_statsd_datagram("php.request.memory.peak", zend_memory_peak_usage(0), "h");
+	send_statsd_datagram("php.request.memory.peak.real", zend_memory_peak_usage(1), "h");
+	send_statsd_datagram("php.request.memory.current", zend_memory_usage(0), "h");
+	send_statsd_datagram("php.request.memory.current.real", zend_memory_usage(1), "h");
 
-    int port = 8125;
-	char *host = "127.0.0.1";
-	char *transport = NULL;
-	int transportLen = spprintf(&transport, 0, "%s%s:%d","udp://" , host, port);
-
-	int options = ENFORCE_SAFE_MODE;
-	char * errstr;
-	int errcode;
-	int flags = STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT;
-
-	g_stream = php_stream_xport_create(transport, transportLen,options, flags,g_persistent_id, NULL, NULL, &errstr, &errcode);
-	int writeSize = php_stream_write(g_stream,pData ,strlen(pData));
 
 	return SUCCESS;
 }
