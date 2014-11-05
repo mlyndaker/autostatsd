@@ -12,6 +12,8 @@ extern zend_module_entry autostatsd_module_entry;
 #include "TSRM.h"
 #endif
 
+PHP_MINIT_FUNCTION(autostatsd);
+PHP_MSHUTDOWN_FUNCTION(autostatsd);
 PHP_RINIT_FUNCTION(autostatsd);
 PHP_RSHUTDOWN_FUNCTION(autostatsd);
 PHP_FUNCTION(autostatsd_template_get_attributes);

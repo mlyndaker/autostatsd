@@ -3,6 +3,7 @@
 #endif
 
 #include "php.h"
+#include "php_ini.h"
 #include "php_autostatsd.h"
 #include "php_network.h"
 
@@ -10,13 +11,12 @@ zend_function_entry autostatsd_functions[] = {
 	{NULL, NULL, NULL}
 };
 
-
 zend_module_entry autostatsd_module_entry = {
 	STANDARD_MODULE_HEADER,
 	"autostatsd",
 	autostatsd_functions,
-	NULL,
-	NULL,
+	PHP_MINIT(autostatsd),
+	PHP_MSHUTDOWN(autostatsd),
 	PHP_RINIT(autostatsd),
 	PHP_RSHUTDOWN(autostatsd),
 	NULL,
@@ -24,11 +24,29 @@ zend_module_entry autostatsd_module_entry = {
 	STANDARD_MODULE_PROPERTIES
 };
 
+PHP_INI_BEGIN()
+PHP_INI_ENTRY("autostatsd.host", "127.0.0.1", PHP_INI_ALL, NULL)
+PHP_INI_ENTRY("autostatsd.port", 8125, PHP_INI_ALL, NULL)
+PHP_INI_END()
 
 #ifdef COMPILE_DL_AUTOSTATSD
 ZEND_GET_MODULE(autostatsd)
 #endif
 
+
+PHP_MINIT_FUNCTION(autostatsd)
+{
+    REGISTER_INI_ENTRIES();
+
+    return SUCCESS;
+}
+
+PHP_MSHUTDOWN_FUNCTION(autostatsd)
+{
+    UNREGISTER_INI_ENTRIES();
+
+    return SUCCESS;
+}
 
 PHP_RINIT_FUNCTION(autostatsd)
 {
@@ -36,15 +54,15 @@ PHP_RINIT_FUNCTION(autostatsd)
 }
 
 static php_stream *stream = NULL;
-static char *stream_buffer = NULL;
-
-static char *host = "127.0.0.1";
-static int port = 8125;
-static int options = ENFORCE_SAFE_MODE;
-static int flags = STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT;
 
 void open_statsd_stream()
 {
+	int options = ENFORCE_SAFE_MODE;
+	int flags = STREAM_XPORT_CLIENT | STREAM_XPORT_CONNECT;
+
+	char *host = INI_STR("autostatsd.host");
+	int port = INI_INT("autostatsd.port");
+
 	char *url = NULL;
 	int url_len = spprintf(&url, 0, "%s%s:%d", "udp://", host, port);
 
