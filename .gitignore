@@ -1,0 +1,5 @@
+*
+!.gitignore
+!autostatsd.c
+!php_autostatsd.h
+!config.m4

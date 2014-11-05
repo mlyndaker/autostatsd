@@ -66,6 +66,67 @@ void push_stat(char *metric, double val, char *type)
 	php_stream_write(stream, data, data_len);
 }
 
+double get_current_time()
+{
+	double current_time = 0;
+
+	zval *function_name;
+	MAKE_STD_ZVAL(function_name);
+	ZVAL_STRING(function_name, "microtime", 1);
+
+	zval *bool_value;
+	MAKE_STD_ZVAL(bool_value);
+	ZVAL_BOOL(bool_value, 1);
+
+	zval *params = {bool_value};
+
+	zval *microtime;
+	MAKE_STD_ZVAL(microtime);
+
+	if (call_user_function(CG(function_table), NULL, function_name, microtime, 1, &params TSRMLS_CC) == SUCCESS) {
+		current_time = Z_DVAL_P(microtime);
+    }
+
+	zval_dtor(function_name);
+	zval_dtor(bool_value);
+	zval_dtor(params);
+	zval_dtor(microtime);
+	FREE_ZVAL(function_name);
+	FREE_ZVAL(bool_value);
+	FREE_ZVAL(params);
+	FREE_ZVAL(microtime);
+
+	return current_time;
+}
+
+double get_request_start_time()
+{
+	double start_time = 0;
+
+	zval **server_vars, **request_time;
+    if (zend_hash_find(&EG(symbol_table), "_SERVER", 8, &server_vars) != FAILURE) {
+        HashTable *ht = Z_ARRVAL_PP(server_vars);
+        if (zend_hash_find(ht, "REQUEST_TIME_FLOAT", 19, &request_time) != FAILURE) {
+            start_time = Z_DVAL_PP(request_time);
+        }
+    }
+
+    return start_time;
+}
+
+double get_elapsed_time()
+{
+	double current_time = get_current_time();
+	double start_time = get_request_start_time();
+	double elapsed_time_ms = 0;
+
+	if (start_time != 0 && current_time != 0) {
+		elapsed_time_ms = (current_time-start_time) * 1000;
+	}
+
+	return elapsed_time_ms;
+}
+
 PHP_RSHUTDOWN_FUNCTION(autostatsd)
 {
 	open_statsd_stream();
@@ -75,8 +136,7 @@ PHP_RSHUTDOWN_FUNCTION(autostatsd)
 	push_stat("php.request.memory.peak.real", zend_memory_peak_usage(1), "h");
 	push_stat("php.request.memory.current", zend_memory_usage(0), "h");
 	push_stat("php.request.memory.current.real", zend_memory_usage(1), "h");
-
-	//log_stat("php.request.time", Z_DVAL_P(zv_ptr), "h");
+	push_stat("php.request.time", get_elapsed_time(), "ms");
 
 	close_statsd_stream();
 
