@@ -3,3 +3,5 @@
 !autostatsd.c
 !php_autostatsd.h
 !config.m4
+!statsd_stream.c
+!statsd_stream.h
