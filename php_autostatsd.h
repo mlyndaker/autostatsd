@@ -11,6 +11,8 @@
 #include "php_ini.h"
 #include "php_autostatsd.h"
 
+#include "time.h"
+#include "SAPI.h"
 #include "statsd_stream.h"
 
 extern zend_module_entry autostatsd_module_entry;

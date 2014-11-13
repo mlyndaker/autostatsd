@@ -27,65 +27,28 @@ PHP_INI_END()
 ZEND_GET_MODULE(autostatsd)
 #endif
 
-double get_current_time()
+/**
+ * Calculate the real world running time of the request.
+ *
+ * @return double Elapsed time in microseconds or 0.00 on error
+ */
+double request_elapsed_time()
 {
-    double current_time = 0;
+    struct timeval tp = {0};
 
-    zval *function_name;
-    MAKE_STD_ZVAL(function_name);
-    ZVAL_STRING(function_name, "microtime", 1);
-
-    zval *bool_value;
-    MAKE_STD_ZVAL(bool_value);
-    ZVAL_BOOL(bool_value, 1);
-
-    zval *params = {bool_value};
-
-    zval *microtime;
-    MAKE_STD_ZVAL(microtime);
-
-    if (call_user_function(CG(function_table), NULL, function_name, microtime, 1, &params TSRMLS_CC) == SUCCESS) {
-        current_time = Z_DVAL_P(microtime);
+    if(gettimeofday(&tp, NULL)) {
+        return 0.00;
     }
 
-    zval_dtor(function_name);
-    zval_dtor(bool_value);
-    zval_dtor(params);
-    zval_dtor(microtime);
-    FREE_ZVAL(function_name);
-    FREE_ZVAL(bool_value);
-    FREE_ZVAL(params);
-    FREE_ZVAL(microtime);
+    double current_time = (double)(tp.tv_sec + tp.tv_usec / 1000000.00);
+    double request_time = sapi_get_request_time();
 
-    return current_time;
-}
-
-double get_request_start_time()
-{
-    double start_time = 0;
-
-    zval **server_vars, **request_time;
-    if (zend_hash_find(&EG(symbol_table), "_SERVER", 8, (void **)&server_vars) != FAILURE) {
-        HashTable *ht = Z_ARRVAL_PP(server_vars);
-        if (zend_hash_find(ht, "REQUEST_TIME_FLOAT", 19, (void **)&request_time) != FAILURE) {
-            start_time = Z_DVAL_PP(request_time);
-        }
+    // check for errors
+    if (current_time <= 0.00 || request_time <= 0.00) {
+        return 0.00;
     }
 
-    return start_time;
-}
-
-double get_elapsed_time()
-{
-    double current_time = get_current_time();
-    double start_time = get_request_start_time();
-    double elapsed_time_ms = 0;
-
-    if (start_time != 0 && current_time != 0) {
-        elapsed_time_ms = (current_time-start_time) * 1000;
-    }
-
-    return elapsed_time_ms;
+    return (current_time - request_time) * 1000;
 }
 
 PHP_MINIT_FUNCTION(autostatsd)
@@ -120,7 +83,7 @@ PHP_RSHUTDOWN_FUNCTION(autostatsd)
     statsd_stream_buffer_metric(ss, "php.request.memory.peak.real", zend_memory_peak_usage(1), "h");
     statsd_stream_buffer_metric(ss, "php.request.memory.current", zend_memory_usage(0), "h");
     statsd_stream_buffer_metric(ss, "php.request.memory.current.real", zend_memory_usage(1), "h");
-    statsd_stream_buffer_metric(ss, "php.request.time", get_elapsed_time(), "ms");
+    statsd_stream_buffer_metric(ss, "php.request.time", request_elapsed_time(), "ms");
 
     statsd_stream_close(ss);
     statsd_stream_free(ss);
