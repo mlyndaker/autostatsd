@@ -363,7 +363,6 @@ bool statsd_stream_close(statsd_stream *ss)
     }
 
     statsd_stream_flush(ss);
-    statsd_stream_close_stream(ss);
 
     return true;
 }
