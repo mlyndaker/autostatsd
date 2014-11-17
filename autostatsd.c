@@ -83,10 +83,10 @@ PHP_RSHUTDOWN_FUNCTION(autostatsd)
 
     statsd_stream_buffer_metric(ss, pre, "request.count", 1, "c");
     statsd_stream_buffer_metric(ss, pre, "request.time", request_elapsed_time(), "ms");
-    statsd_stream_buffer_metric(ss, pre, "request.memory.peak", zend_memory_peak_usage(0), "h");
-    statsd_stream_buffer_metric(ss, pre, "request.memory.peak.real", zend_memory_peak_usage(1), "h");
-    statsd_stream_buffer_metric(ss, pre, "request.memory.current", zend_memory_usage(0), "h");
-    statsd_stream_buffer_metric(ss, pre, "request.memory.current.real", zend_memory_usage(1), "h");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.peak", zend_memory_peak_usage(0), "g");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.peak.real", zend_memory_peak_usage(1), "g");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.current", zend_memory_usage(0), "g");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.current.real", zend_memory_usage(1), "g");
 
     statsd_stream_close(ss);
     statsd_stream_free(ss);

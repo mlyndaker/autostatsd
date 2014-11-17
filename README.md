@@ -48,10 +48,10 @@ Data types are defined [here](https://github.com/etsy/statsd/blob/master/docs/me
 | ------------------------------------- | ---- | -----------
 | {pref}.request.count                  | c    | Increment the request counter
 | {pref}.request.time                   | ms   | Total request time in milliseconds
-| {pref}.request.memory.peak            | h    | Peak memory used by the script in bytes. [memory_get_peak_usage(false)](http://php.net/manual/en/function.memory-get-peak-usage.php)
-| {pref}.request.memory.peak.real       | h    | Peak memory allocated by the system in bytes. [memory_get_peak_usage(true)](http://php.net/manual/en/function.memory-get-peak-usage.php)
-| {pref}.request.memory.current         | h    | Current memory used by the script in bytes. [memory_get_usage(false)](http://php.net/manual/en/function.memory-get-usage.php)
-| {pref}.request.memory.current.real    | h    | Current memory allocated by the system in bytes. [memory_get_usage(true)](http://php.net/manual/en/function.memory-get-usage.php)
+| {pref}.request.memory.peak            | g    | Peak memory used by the script in bytes. [memory_get_peak_usage(false)](http://php.net/manual/en/function.memory-get-peak-usage.php)
+| {pref}.request.memory.peak.real       | g    | Peak memory allocated by the system in bytes. [memory_get_peak_usage(true)](http://php.net/manual/en/function.memory-get-peak-usage.php)
+| {pref}.request.memory.current         | g    | Current memory used by the script in bytes. [memory_get_usage(false)](http://php.net/manual/en/function.memory-get-usage.php)
+| {pref}.request.memory.current.real    | g    | Current memory allocated by the system in bytes. [memory_get_usage(true)](http://php.net/manual/en/function.memory-get-usage.php)
 
 ## Author
 
