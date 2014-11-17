@@ -21,6 +21,7 @@ PHP_INI_BEGIN()
 PHP_INI_ENTRY("autostatsd.host", AUTOSTATSD_DEFAULT_HOST, PHP_INI_ALL, NULL)
 PHP_INI_ENTRY("autostatsd.port", AUTOSTATSD_DEFAULT_PORT, PHP_INI_ALL, NULL)
 PHP_INI_ENTRY("autostatsd.buffer_size", AUTOSTATSD_DEFAULT_BUFFER_SIZE, PHP_INI_ALL, NULL)
+PHP_INI_ENTRY("autostatsd.metric_prefix", AUTOSTATSD_DEFAULT_METRIC_PREFIX, PHP_INI_ALL, NULL)
 PHP_INI_END()
 
 #ifdef COMPILE_DL_AUTOSTATSD
@@ -78,12 +79,14 @@ PHP_RSHUTDOWN_FUNCTION(autostatsd)
         INI_INT("autostatsd.buffer_size")
     );
 
-    statsd_stream_buffer_metric(ss, "php.request.count", 1, "c");
-    statsd_stream_buffer_metric(ss, "php.request.memory.peak", zend_memory_peak_usage(0), "h");
-    statsd_stream_buffer_metric(ss, "php.request.memory.peak.real", zend_memory_peak_usage(1), "h");
-    statsd_stream_buffer_metric(ss, "php.request.memory.current", zend_memory_usage(0), "h");
-    statsd_stream_buffer_metric(ss, "php.request.memory.current.real", zend_memory_usage(1), "h");
-    statsd_stream_buffer_metric(ss, "php.request.time", request_elapsed_time(), "ms");
+    char *pre = INI_STR("autostatsd.metric_prefix");
+
+    statsd_stream_buffer_metric(ss, pre, "request.count", 1, "c");
+    statsd_stream_buffer_metric(ss, pre, "request.time", request_elapsed_time(), "ms");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.peak", zend_memory_peak_usage(0), "h");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.peak.real", zend_memory_peak_usage(1), "h");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.current", zend_memory_usage(0), "h");
+    statsd_stream_buffer_metric(ss, pre, "request.memory.current.real", zend_memory_usage(1), "h");
 
     statsd_stream_close(ss);
     statsd_stream_free(ss);

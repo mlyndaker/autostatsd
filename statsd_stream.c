@@ -308,17 +308,23 @@ bool statsd_stream_buffer_data(statsd_stream *ss, const char *const data)
  * Buffers the metric if possible before writing to the stream. Flushes the buffer if full.
  *
  * @param statsd_stream *           [ss]            initialized statsd stream
+ * @param const char *const         [prefix]        prefix prepended to metric name
  * @param const char *const         [name]          metric name
  * @param const double              [val]           metric value
  * @param const char *const         [type]          metric type
  * @return bool                                     whether the metric was buffered or written
  */
-bool statsd_stream_buffer_metric(statsd_stream *ss, const char *const name, const double val, const char *const type)
-{
+bool statsd_stream_buffer_metric(
+    statsd_stream *ss,
+    const char *const prefix,
+    const char *const name,
+    const double val,
+    const char *const type
+) {
     char *data;
     int retval = 0;
 
-    spprintf(&data, 0, "%s:%g|%s", name, val, type);
+    spprintf(&data, 0, "%s.%s:%g|%s", prefix, name, val, type);
     retval = statsd_stream_buffer_data(ss, data);
     efree(data);
 

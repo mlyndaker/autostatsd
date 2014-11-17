@@ -28,6 +28,6 @@ bool statsd_stream_flush(statsd_stream *ss);
 bool statsd_stream_close(statsd_stream *ss);
 bool statsd_stream_free(statsd_stream *ss);
 bool statsd_stream_buffer_data(statsd_stream *ss, const char *const data);
-bool statsd_stream_buffer_metric(statsd_stream *ss, const char *const name, const double val, const char *const type);
+bool statsd_stream_buffer_metric(statsd_stream *ss, const char *const prefix, const char *const name, const double val, const char *const type);
 
 #endif

@@ -25,6 +25,7 @@ extern zend_module_entry autostatsd_module_entry;
 #define AUTOSTATSD_DEFAULT_HOST "127.0.0.1"
 #define AUTOSTATSD_DEFAULT_PORT "8125"
 #define AUTOSTATSD_DEFAULT_BUFFER_SIZE "512"
+#define AUTOSTATSD_DEFAULT_METRIC_PREFIX "php"
 
 PHP_MINIT_FUNCTION(autostatsd);
 PHP_MSHUTDOWN_FUNCTION(autostatsd);
