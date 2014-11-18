@@ -88,6 +88,15 @@ PHP_RSHUTDOWN_FUNCTION(autostatsd)
     statsd_stream_buffer_metric(ss, pre, "request.memory.current", zend_memory_usage(0), "g");
     statsd_stream_buffer_metric(ss, pre, "request.memory.current.real", zend_memory_usage(1), "g");
 
+    // log the HTTP status code
+    int status_code = SG(sapi_headers).http_response_code;
+    if (status_code != NULL) {
+        char *metric_name;
+        spprintf(&metric_name, 0, "response.status_code.%d.count", status_code);
+        statsd_stream_buffer_metric(ss, pre, metric_name, 1, "c");
+        efree(metric_name);
+    }
+
     statsd_stream_close(ss);
     statsd_stream_free(ss);
 
